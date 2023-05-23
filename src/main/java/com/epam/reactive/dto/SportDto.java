@@ -8,4 +8,8 @@ import lombok.NoArgsConstructor;
 public class SportDto {
     private Integer id;
     private AttributesDto attributes;
+
+    public String getName(){
+        return attributes.getName();
+    }
 }
