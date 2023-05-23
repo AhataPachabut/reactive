@@ -10,6 +10,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("sports")
 public class Sport {
     @Id
-    private Integer id;
+    private final Integer id;
     private final String name;
 }

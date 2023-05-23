@@ -4,6 +4,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 
 import com.epam.reactive.entity.Sport;
 import com.epam.reactive.repository.SportRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration(proxyBeanMethods = false)
+@Slf4j
 public class SportConfig {
 
     @Bean
@@ -20,7 +22,7 @@ public class SportConfig {
         return RouterFunctions
             .route()
             .path("/api/v1/sport", builder -> builder
-                .POST("/{sportname}",
+                .POST("/{sportName}",
                     accept(MediaType.APPLICATION_JSON),
                     request -> {
                         String sportName = request.pathVariable("sportName");
@@ -49,6 +51,9 @@ public class SportConfig {
                 Sport.builder()
                     .name(sportDto.getName())
                     .build()
-            )).blockLast();
+            )
+        ).onErrorContinue((throwable, o) ->
+            log.error("Unable to store sport", o)
+        ).blockLast();
     }
 }
