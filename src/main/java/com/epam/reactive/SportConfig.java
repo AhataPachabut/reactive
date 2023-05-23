@@ -18,7 +18,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class SportConfig {
 
     @Bean
-    public RouterFunction<ServerResponse> route(SportRepository sportRepository, SportWebClient sportWebClient) {
+    public RouterFunction<ServerResponse> route(SportRepository sportRepository) {
         return RouterFunctions
             .route()
             .path("/api/v1/sport", builder -> builder
