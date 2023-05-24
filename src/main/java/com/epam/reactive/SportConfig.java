@@ -21,26 +21,31 @@ public class SportConfig {
     public RouterFunction<ServerResponse> route(SportRepository sportRepository) {
         return RouterFunctions
             .route()
-            .path("/api/v1/sport", builder -> builder
-                .POST("/{sportName}",
-                    accept(MediaType.APPLICATION_JSON),
-                    request -> {
-                        String sportName = request.pathVariable("sportName");
-                        return ServerResponse
-                            .ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(sportRepository.save(Sport.builder().name(sportName).build()), Sport.class);
-                    })
-                .GET("",
-                    accept(MediaType.APPLICATION_JSON),
-                    request -> {
-                        String sportName = request.queryParam("sportName").orElseThrow();
-                        return ServerResponse
-                            .ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(sportRepository.findByName(sportName), Sport.class);
-                    }
-                )
+            .path("/api/v1/sport", builder ->
+                builder
+                    .POST("/{sportName}",
+                        accept(MediaType.APPLICATION_JSON),
+                        request -> {
+                            String sportName = request.pathVariable("sportName");
+                            return sportRepository.save(Sport.builder().name(sportName).build())
+                                .flatMap(sport -> ServerResponse.ok()
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .body(sport, Sport.class)
+                                ).onErrorResume(e -> {
+                                    log.error("Unable to create sport: " + sportName, e);
+                                    return ServerResponse.badRequest().build();
+                                });
+                        })
+                    .GET("",
+                        accept(MediaType.APPLICATION_JSON),
+                        request -> {
+                            String sportName = request.queryParam("sportName").orElseThrow();
+                            return sportRepository.findByName(sportName)
+                                .flatMap(sport -> ServerResponse.ok()
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .body(sport, Sport.class)
+                                ).switchIfEmpty(ServerResponse.notFound().build());
+                        })
             ).build();
     }
 
@@ -53,7 +58,7 @@ public class SportConfig {
                     .build()
             )
         ).onErrorContinue((throwable, o) ->
-            log.error("Unable to store sport", o)
+            log.error("Unable to create sport", throwable)
         ).blockLast();
     }
 }
